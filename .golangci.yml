@@ -1,0 +1,35 @@
+# golangci-lint configuration v2
+# https://golangci-lint.run/usage/configuration/
+
+version: "2"
+
+run:
+  timeout: 5m
+
+linters:
+  default: none
+  enable:
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+
+linters-settings:
+  staticcheck:
+    checks:
+      - all
+      - "-SA1019"  # Allow deprecated functions
+      - "-ST1023"  # Allow explicit type declarations
+      - "-QF1003"  # Allow if instead of switch
+      - "-QF1007"  # Allow separate variable declaration
+      - "-S1009"   # Allow explicit nil check with len
+
+issues:
+  exclude-dirs:
+    - vendor
+
+  exclude-rules:
+    # Ignore unused in test files (test helper functions)
+    - path: _test\.go
+      linters:
+        - unused
