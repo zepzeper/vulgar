@@ -1,3 +1,5 @@
+> ⚠️ **Work in Progress**: Vulgar is under development and not yet production-ready. APIs may change, and some modules are stubs awaiting implementation. Contributions and feedback are welcome!
+
 Vulgar is a powerful, modular workflow automation engine that combines Go's performance with Lua's scripting flexibility. With 60+ built-in modules covering cloud services, databases, AI, and developer tools, Vulgar lets you build automation scripts rapidly while maintaining full control.
 
 ## Key Capabilities
@@ -248,4 +250,4 @@ Vulgar is open source software licensed under the [Apache License 2.0](LICENSE).
 
 ## What does "Vulgar" mean?
 
-The namae comes from the ide of making automation *accessible to everyone* - like "vulgar" in its original Latin sense meaning "of the common people." Just as Lua means "moon" in Portuguese and illuminates the darkness, Vulgar aims to make powerful automation tools available to all developers, not just those with specialized knowledge.
+The name comes from the idea of making automation *accessible to everyone* - like "vulgar" in its original Latin sense meaning "of the common people." Just as Lua means "moon" in Portuguese and illuminates the darkness, Vulgar aims to make powerful automation tools available to all developers, not just those with specialized knowledge.
