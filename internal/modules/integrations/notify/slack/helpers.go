@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	lua "github.com/yuin/gopher-lua"
 	"github.com/zepzeper/vulgar/internal/httpclient"
 	"github.com/zepzeper/vulgar/internal/modules/util"
-	lua "github.com/yuin/gopher-lua"
 )
 
 func sendWebhook(webhookURL string, payload *webhookPayload) error {

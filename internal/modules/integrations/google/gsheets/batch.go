@@ -119,4 +119,3 @@ func buildRequest(opts *lua.LTable) *sheets.Request {
 
 	return nil
 }
-

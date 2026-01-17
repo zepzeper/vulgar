@@ -1,0 +1,49 @@
+# Binaries
+vulgar
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test binary
+*.test
+
+# Output of go coverage
+*.out
+
+# Profiling
+vulgar.prof
+vulgar.trace
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data directory (SQLite databases, temp files, etc.)
+docker/*
+!docker/.gitkeep
+.data/*
+!.data/.gitkeep
+
+# Docker volumes (if mounted locally)
+docker/data/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/

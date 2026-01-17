@@ -109,4 +109,3 @@ func scanForWorkflows(rootPath string) ([]WorkflowInfo, error) {
 
 	return workflows, err
 }
-

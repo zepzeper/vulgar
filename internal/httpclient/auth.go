@@ -89,10 +89,10 @@ func (s *staticTokenSource) Token() (*Token, error) {
 
 // RefreshableTokenSource is a TokenSource that can refresh tokens
 type RefreshableTokenSource struct {
-	mu           sync.Mutex
-	token        *Token
-	refreshFunc  func(refreshToken string) (*Token, error)
-	onRefresh    func(*Token)
+	mu          sync.Mutex
+	token       *Token
+	refreshFunc func(refreshToken string) (*Token, error)
+	onRefresh   func(*Token)
 }
 
 // NewRefreshableTokenSource creates a new refreshable token source
@@ -218,4 +218,3 @@ func WithStripeAuth(secretKey string) Option {
 func WithTwilioAuth(accountSID, authToken string) Option {
 	return WithBasicAuth(accountSID, authToken)
 }
-

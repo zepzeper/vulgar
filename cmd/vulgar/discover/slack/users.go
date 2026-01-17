@@ -51,115 +51,115 @@ Examples:
 				return nil
 			}
 
-		cli.PrintDone()
+			cli.PrintDone()
 
-		if len(users) == 0 {
-			cli.PrintWarning("No users found")
-			return nil
-		}
-
-		cli.PrintSuccess("Found %d user(s)", len(users))
-		fmt.Println()
-
-		type userOption struct {
-			Name     string
-			ID       string
-			RealName string
-			Status   string
-			IsBot    bool
-		}
-
-		options := make([]userOption, len(users))
-		for i, u := range users {
-			status := "active"
-			if u.IsBot {
-				status = "bot"
+			if len(users) == 0 {
+				cli.PrintWarning("No users found")
+				return nil
 			}
-			if u.Profile.StatusText != "" {
-				status = u.Profile.StatusText
-			}
-			options[i] = userOption{
-				Name:     u.Name,
-				ID:       u.ID,
-				RealName: u.RealName,
-				Status:   status,
-				IsBot:    u.IsBot,
-			}
-		}
 
-		// Plain mode
-		if plain {
-			for _, opt := range options {
+			cli.PrintSuccess("Found %d user(s)", len(users))
+			fmt.Println()
+
+			type userOption struct {
+				Name     string
+				ID       string
+				RealName string
+				Status   string
+				IsBot    bool
+			}
+
+			options := make([]userOption, len(users))
+			for i, u := range users {
+				status := "active"
+				if u.IsBot {
+					status = "bot"
+				}
+				if u.Profile.StatusText != "" {
+					status = u.Profile.StatusText
+				}
+				options[i] = userOption{
+					Name:     u.Name,
+					ID:       u.ID,
+					RealName: u.RealName,
+					Status:   status,
+					IsBot:    u.IsBot,
+				}
+			}
+
+			// Plain mode
+			if plain {
+				for _, opt := range options {
+					prefix := "[U]"
+					if opt.IsBot {
+						prefix = "[B]"
+					}
+					fmt.Printf("%s @%s\n", prefix, opt.Name)
+					fmt.Printf("  %s\n", opt.ID)
+					if opt.RealName != "" {
+						fmt.Printf("  %s\n", opt.RealName)
+					}
+					fmt.Println()
+				}
+				return nil
+			}
+
+			// Interactive mode
+			selected, err := cli.Select("Select a user", options, func(u userOption) string {
 				prefix := "[U]"
-				if opt.IsBot {
+				if u.IsBot {
 					prefix = "[B]"
 				}
-				fmt.Printf("%s @%s\n", prefix, opt.Name)
-				fmt.Printf("  %s\n", opt.ID)
-				if opt.RealName != "" {
-					fmt.Printf("  %s\n", opt.RealName)
+				display := fmt.Sprintf("%s @%s", prefix, u.Name)
+				if u.RealName != "" {
+					display += fmt.Sprintf("  %s", cli.Muted("("+u.RealName+")"))
 				}
-				fmt.Println()
-			}
-			return nil
-		}
+				return display
+			})
 
-		// Interactive mode
-		selected, err := cli.Select("Select a user", options, func(u userOption) string {
+			if err != nil {
+				// User cancelled - show list
+				for _, opt := range options {
+					prefix := "[U]"
+					if opt.IsBot {
+						prefix = "[B]"
+					}
+					fmt.Printf("%s @%s\n", prefix, opt.Name)
+					fmt.Printf("  %s %s\n", cli.Muted("ID:"), opt.ID)
+					fmt.Println()
+				}
+				return nil
+			}
+
+			// Show selected item details
+			fmt.Println()
+			cli.PrintHeader("Selected User")
+			fmt.Println()
 			prefix := "[U]"
-			if u.IsBot {
+			if selected.IsBot {
 				prefix = "[B]"
 			}
-			display := fmt.Sprintf("%s @%s", prefix, u.Name)
-			if u.RealName != "" {
-				display += fmt.Sprintf("  %s", cli.Muted("("+u.RealName+")"))
+			fmt.Printf("  %s %s@%s\n", cli.Muted("Name:"), prefix, selected.Name)
+			if selected.RealName != "" {
+				fmt.Printf("  %s %s\n", cli.Muted("Real Name:"), selected.RealName)
 			}
-			return display
-		})
+			if selected.Status != "" && selected.Status != "active" && selected.Status != "bot" {
+				fmt.Printf("  %s %s\n", cli.Muted("Status:"), selected.Status)
+			}
+			fmt.Println()
+			fmt.Printf("  %s\n", cli.Bold("ID (copy this):"))
+			fmt.Printf("  %s\n", selected.ID)
+			fmt.Println()
+			cli.PrintTip(fmt.Sprintf("Use in workflow: slack.get_user(client, \"%s\")", selected.ID))
 
-		if err != nil {
-			// User cancelled - show list
-			for _, opt := range options {
-				prefix := "[U]"
-				if opt.IsBot {
-					prefix = "[B]"
-				}
-				fmt.Printf("%s @%s\n", prefix, opt.Name)
-				fmt.Printf("  %s %s\n", cli.Muted("ID:"), opt.ID)
-				fmt.Println()
-			}
 			return nil
-		}
+		},
+	}
 
-		// Show selected item details
-		fmt.Println()
-		cli.PrintHeader("Selected User")
-		fmt.Println()
-		prefix := "[U]"
-		if selected.IsBot {
-			prefix = "[B]"
-		}
-		fmt.Printf("  %s %s@%s\n", cli.Muted("Name:"), prefix, selected.Name)
-		if selected.RealName != "" {
-			fmt.Printf("  %s %s\n", cli.Muted("Real Name:"), selected.RealName)
-		}
-		if selected.Status != "" && selected.Status != "active" && selected.Status != "bot" {
-			fmt.Printf("  %s %s\n", cli.Muted("Status:"), selected.Status)
-		}
-		fmt.Println()
-		fmt.Printf("  %s\n", cli.Bold("ID (copy this):"))
-		fmt.Printf("  %s\n", selected.ID)
-		fmt.Println()
-		cli.PrintTip(fmt.Sprintf("Use in workflow: slack.get_user(client, \"%s\")", selected.ID))
+	cmd.Flags().BoolVar(&showBots, "bots", false, "Include bot users")
+	cmd.Flags().BoolVar(&plain, "plain", false, "Plain output (non-interactive)")
 
-		return nil
-	},
-}
-
-cmd.Flags().BoolVar(&showBots, "bots", false, "Include bot users")
-cmd.Flags().BoolVar(&plain, "plain", false, "Plain output (non-interactive)")
-
-return cmd
+	return cmd
 }
 
 func findUserCmd() *cobra.Command {
@@ -210,9 +210,9 @@ Examples:
 				realName := strings.ToLower(u.RealName)
 				email := strings.ToLower(u.Email)
 
-					if strings.Contains(name, searchTerm) ||
-						strings.Contains(realName, searchTerm) ||
-						strings.Contains(email, searchTerm) {
+				if strings.Contains(name, searchTerm) ||
+					strings.Contains(realName, searchTerm) ||
+					strings.Contains(email, searchTerm) {
 					matches = append(matches, struct {
 						Name     string
 						ID       string
@@ -229,106 +229,106 @@ Examples:
 				}
 			}
 
-		if len(matches) == 0 {
-			cli.PrintWarning("No users found matching: %s", args[0])
-			return nil
-		}
-
-		cli.PrintSuccess("Found %d user(s) matching \"%s\"", len(matches), args[0])
-		fmt.Println()
-
-		type userOption struct {
-			Name     string
-			ID       string
-			RealName string
-			Email    string
-			IsBot    bool
-		}
-
-		options := make([]userOption, len(matches))
-		for i, u := range matches {
-			options[i] = userOption{
-				Name:     u.Name,
-				ID:       u.ID,
-				RealName: u.RealName,
-				Email:    u.Email,
-				IsBot:    u.IsBot,
+			if len(matches) == 0 {
+				cli.PrintWarning("No users found matching: %s", args[0])
+				return nil
 			}
-		}
 
-		// Plain mode
-		if plain {
-			for _, opt := range options {
+			cli.PrintSuccess("Found %d user(s) matching \"%s\"", len(matches), args[0])
+			fmt.Println()
+
+			type userOption struct {
+				Name     string
+				ID       string
+				RealName string
+				Email    string
+				IsBot    bool
+			}
+
+			options := make([]userOption, len(matches))
+			for i, u := range matches {
+				options[i] = userOption{
+					Name:     u.Name,
+					ID:       u.ID,
+					RealName: u.RealName,
+					Email:    u.Email,
+					IsBot:    u.IsBot,
+				}
+			}
+
+			// Plain mode
+			if plain {
+				for _, opt := range options {
+					prefix := "[U]"
+					if opt.IsBot {
+						prefix = "[B]"
+					}
+					fmt.Printf("%s @%s\n", prefix, opt.Name)
+					fmt.Printf("  %s\n", opt.ID)
+					if opt.RealName != "" {
+						fmt.Printf("  %s\n", opt.RealName)
+					}
+					if opt.Email != "" {
+						fmt.Printf("  %s\n", opt.Email)
+					}
+					fmt.Println()
+				}
+				return nil
+			}
+
+			// Interactive mode
+			selected, err := cli.Select("Select a user", options, func(u userOption) string {
 				prefix := "[U]"
-				if opt.IsBot {
+				if u.IsBot {
 					prefix = "[B]"
 				}
-				fmt.Printf("%s @%s\n", prefix, opt.Name)
-				fmt.Printf("  %s\n", opt.ID)
-				if opt.RealName != "" {
-					fmt.Printf("  %s\n", opt.RealName)
+				display := fmt.Sprintf("%s @%s", prefix, u.Name)
+				if u.RealName != "" {
+					display += fmt.Sprintf("  %s", cli.Muted("("+u.RealName+")"))
 				}
-				if opt.Email != "" {
-					fmt.Printf("  %s\n", opt.Email)
-				}
-				fmt.Println()
-			}
-			return nil
-		}
+				return display
+			})
 
-		// Interactive mode
-		selected, err := cli.Select("Select a user", options, func(u userOption) string {
+			if err != nil {
+				// User cancelled - show list
+				for _, opt := range options {
+					prefix := "[U]"
+					if opt.IsBot {
+						prefix = "[B]"
+					}
+					fmt.Printf("%s @%s\n", prefix, opt.Name)
+					fmt.Printf("  %s %s\n", cli.Muted("ID:"), opt.ID)
+					fmt.Println()
+				}
+				return nil
+			}
+
+			// Show selected item details
+			fmt.Println()
+			cli.PrintHeader("Selected User")
+			fmt.Println()
 			prefix := "[U]"
-			if u.IsBot {
+			if selected.IsBot {
 				prefix = "[B]"
 			}
-			display := fmt.Sprintf("%s @%s", prefix, u.Name)
-			if u.RealName != "" {
-				display += fmt.Sprintf("  %s", cli.Muted("("+u.RealName+")"))
+			fmt.Printf("  %s %s@%s\n", cli.Muted("Name:"), prefix, selected.Name)
+			if selected.RealName != "" {
+				fmt.Printf("  %s %s\n", cli.Muted("Real Name:"), selected.RealName)
 			}
-			return display
-		})
+			if selected.Email != "" {
+				fmt.Printf("  %s %s\n", cli.Muted("Email:"), selected.Email)
+			}
+			fmt.Println()
+			fmt.Printf("  %s\n", cli.Bold("ID (copy this):"))
+			fmt.Printf("  %s\n", selected.ID)
+			fmt.Println()
+			cli.PrintTip(fmt.Sprintf("Use in workflow: slack.get_user(client, \"%s\")", selected.ID))
 
-		if err != nil {
-			// User cancelled - show list
-			for _, opt := range options {
-				prefix := "[U]"
-				if opt.IsBot {
-					prefix = "[B]"
-				}
-				fmt.Printf("%s @%s\n", prefix, opt.Name)
-				fmt.Printf("  %s %s\n", cli.Muted("ID:"), opt.ID)
-				fmt.Println()
-			}
 			return nil
-		}
+		},
+	}
 
-		// Show selected item details
-		fmt.Println()
-		cli.PrintHeader("Selected User")
-		fmt.Println()
-		prefix := "[U]"
-		if selected.IsBot {
-			prefix = "[B]"
-		}
-		fmt.Printf("  %s %s@%s\n", cli.Muted("Name:"), prefix, selected.Name)
-		if selected.RealName != "" {
-			fmt.Printf("  %s %s\n", cli.Muted("Real Name:"), selected.RealName)
-		}
-		if selected.Email != "" {
-			fmt.Printf("  %s %s\n", cli.Muted("Email:"), selected.Email)
-		}
-		fmt.Println()
-		fmt.Printf("  %s\n", cli.Bold("ID (copy this):"))
-		fmt.Printf("  %s\n", selected.ID)
-		fmt.Println()
-		cli.PrintTip(fmt.Sprintf("Use in workflow: slack.get_user(client, \"%s\")", selected.ID))
+	cmd.Flags().BoolVar(&plain, "plain", false, "Plain output (non-interactive)")
 
-		return nil
-	},
-}
-
-cmd.Flags().BoolVar(&plain, "plain", false, "Plain output (non-interactive)")
-
-return cmd
+	return cmd
 }

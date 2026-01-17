@@ -167,13 +167,14 @@ func luaGetEvent(L *lua.LState) int {
 }
 
 // luaCreateEvent creates a new event
-// Usage: local event, err = gcalendar.create_event(client, {
-//   calendar_id = "primary",
-//   summary = "Meeting",
-//   start_time = "2025-01-15T10:00:00Z",
-//   end_time = "2025-01-15T11:00:00Z",
-//   attendees = {"user@example.com"}
-// })
+//
+//	Usage: local event, err = gcalendar.create_event(client, {
+//	  calendar_id = "primary",
+//	  summary = "Meeting",
+//	  start_time = "2025-01-15T10:00:00Z",
+//	  end_time = "2025-01-15T11:00:00Z",
+//	  attendees = {"user@example.com"}
+//	})
 func luaCreateEvent(L *lua.LState) int {
 	client := getClient(L, 1)
 	if client == nil {
@@ -429,11 +430,12 @@ func luaQuickAdd(L *lua.LState) int {
 }
 
 // luaFreebusy checks free/busy information
-// Usage: local busy, err = gcalendar.freebusy(client, {
-//   time_min = "...",
-//   time_max = "...",
-//   calendars = {"primary", "other@example.com"}
-// })
+//
+//	Usage: local busy, err = gcalendar.freebusy(client, {
+//	  time_min = "...",
+//	  time_max = "...",
+//	  calendars = {"primary", "other@example.com"}
+//	})
 func luaFreebusy(L *lua.LState) int {
 	client := getClient(L, 1)
 	if client == nil {
@@ -736,19 +738,19 @@ func luaUpcomingEvents(L *lua.LState) int {
 }
 
 var exports = map[string]lua.LGFunction{
-	"configure":        luaConfigure,
-	"list_events":      luaListEvents,
-	"get_event":        luaGetEvent,
-	"create_event":     luaCreateEvent,
-	"update_event":     luaUpdateEvent,
-	"delete_event":     luaDeleteEvent,
-	"list_calendars":   luaListCalendars,
-	"quick_add":        luaQuickAdd,
-	"freebusy":         luaFreebusy,
-	"find_calendar":    luaFindCalendar,
-	"find_event":       luaFindEvent,
-	"todays_events":    luaTodaysEvents,
-	"upcoming_events":  luaUpcomingEvents,
+	"configure":       luaConfigure,
+	"list_events":     luaListEvents,
+	"get_event":       luaGetEvent,
+	"create_event":    luaCreateEvent,
+	"update_event":    luaUpdateEvent,
+	"delete_event":    luaDeleteEvent,
+	"list_calendars":  luaListCalendars,
+	"quick_add":       luaQuickAdd,
+	"freebusy":        luaFreebusy,
+	"find_calendar":   luaFindCalendar,
+	"find_event":      luaFindEvent,
+	"todays_events":   luaTodaysEvents,
+	"upcoming_events": luaUpcomingEvents,
 }
 
 // Loader is called when the module is required via require("integrations.gcalendar")
@@ -762,4 +764,3 @@ func Loader(L *lua.LState) int {
 func init() {
 	modules.Register(ModuleName, Loader)
 }
-

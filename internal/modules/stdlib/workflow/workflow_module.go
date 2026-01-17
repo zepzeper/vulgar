@@ -39,12 +39,17 @@ func workflowGC(L *lua.LState) int {
 }
 
 var workflowMethods = map[string]lua.LGFunction{
-	"node":      luaWorkflowNode,
-	"edge":      luaWorkflowEdge,
-	"on_error":  luaWorkflowOnError,
-	"run":       luaWorkflowRun,
-	"status":    luaWorkflowStatus,
-	"cancel":    luaWorkflowCancel,
+	"node":            luaWorkflowNode,
+	"edge":            luaWorkflowEdge,
+	"on_error":        luaWorkflowOnError,
+	"run":             luaWorkflowRun,
+	"status":          luaWorkflowStatus,
+	"cancel":          luaWorkflowCancel,
+	"get_nodes":       luaGetNodes,
+	"get_edges":       luaGetEdges,
+	"run_node":        luaRunNode,
+	"reset":           luaReset,
+	"get_node_status": luaGetNodeStatus,
 }
 
 func luaNew(L *lua.LState) int {
@@ -54,7 +59,7 @@ func luaNew(L *lua.LState) int {
 	wf := &workflowHandle{
 		name:    name,
 		nodes:   make(map[string]*workflowNode), // Initialize nodes map
-		timeout: 0, // 0 means no timeout
+		timeout: 0,                              // 0 means no timeout
 		retries: 0,
 		status:  WorkflowStatusPending, // Use new WorkflowStatus type
 		context: L.NewTable(),
@@ -122,12 +127,16 @@ func luaWorkflowStatus(L *lua.LState) int {
 	wf.mu.Lock()
 	status := wf.status
 	nodeCount := len(wf.nodes)
+	context := wf.context
 	wf.mu.Unlock()
 
 	tbl := L.NewTable()
 	tbl.RawSetString("status", lua.LString(status))
 	tbl.RawSetString("name", lua.LString(wf.name))
 	tbl.RawSetString("nodes", lua.LNumber(nodeCount))
+	if context != nil {
+		tbl.RawSetString("context", context)
+	}
 
 	L.Push(tbl)
 	return 1
@@ -157,13 +166,18 @@ func luaWorkflowCancel(L *lua.LState) int {
 }
 
 var exports = map[string]lua.LGFunction{
-	"new":       luaNew,
-	"node":      luaNode,
-	"edge":      luaEdge,
-	"on_error":  luaOnError,
-	"run":       luaRun,
-	"status":    luaStatus,
-	"cancel":    luaCancel,
+	"new":             luaNew,
+	"node":            luaNode,
+	"edge":            luaEdge,
+	"on_error":        luaOnError,
+	"run":             luaRun,
+	"status":          luaStatus,
+	"cancel":          luaCancel,
+	"get_nodes":       luaGetNodes,
+	"get_edges":       luaGetEdges,
+	"run_node":        luaRunNode,
+	"reset":           luaReset,
+	"get_node_status": luaGetNodeStatus,
 }
 
 func luaOnError(L *lua.LState) int {

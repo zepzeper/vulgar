@@ -218,4 +218,3 @@ func (r *Response) CheckGitLab() error {
 
 	return r.CheckStatus()
 }
-

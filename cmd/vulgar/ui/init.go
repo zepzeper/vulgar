@@ -10,7 +10,7 @@ func TuiCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "tui",
 		Short: "Vizually explore workflows",
-		RunE: runTui,
+		RunE:  runTui,
 	}
 
 	cmd.Flags().Bool("force", false, "Overwrite existing config file")
@@ -19,8 +19,8 @@ func TuiCmd() *cobra.Command {
 }
 
 func runTui(cmd *cobra.Command, args []string) error {
-    initialModel := tui.NewRootModel() 
-    p := tea.NewProgram(initialModel, tea.WithAltScreen())
-    _, err := p.Run()
-    return err
+	initialModel := tui.NewRootModel()
+	p := tea.NewProgram(initialModel, tea.WithAltScreen())
+	_, err := p.Run()
+	return err
 }

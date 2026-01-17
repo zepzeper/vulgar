@@ -21,4 +21,3 @@ var (
 	clientMutex sync.Mutex
 	clients     = make(map[*lua.LUserData]*clientWrapper)
 )
-

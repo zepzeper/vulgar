@@ -80,4 +80,3 @@ func (t *SettingsTab) Title() string {
 func (t *SettingsTab) Shortcut() string {
 	return "2"
 }
-

@@ -57,103 +57,103 @@ Examples:
 				return nil
 			}
 
-		cli.PrintDone()
+			cli.PrintDone()
 
-		if len(channels) == 0 {
-			cli.PrintWarning("No channels found")
-			return nil
-		}
-
-		cli.PrintSuccess("Found %d channel(s)", len(channels))
-		fmt.Println()
-
-		type channelOption struct {
-			Name      string
-			ID        string
-			Type      string
-			Members   int
-			IsPrivate bool
-		}
-
-		options := make([]channelOption, len(channels))
-		for i, ch := range channels {
-			typeStr := "public"
-			if ch.IsPrivate {
-				typeStr = "private"
+			if len(channels) == 0 {
+				cli.PrintWarning("No channels found")
+				return nil
 			}
-			options[i] = channelOption{
-				Name:      ch.Name,
-				ID:        ch.ID,
-				Type:      typeStr,
-				Members:   ch.NumMembers,
-				IsPrivate: ch.IsPrivate,
-			}
-		}
 
-		// Plain mode - just print the list
-		if plain {
-			for _, opt := range options {
+			cli.PrintSuccess("Found %d channel(s)", len(channels))
+			fmt.Println()
+
+			type channelOption struct {
+				Name      string
+				ID        string
+				Type      string
+				Members   int
+				IsPrivate bool
+			}
+
+			options := make([]channelOption, len(channels))
+			for i, ch := range channels {
+				typeStr := "public"
+				if ch.IsPrivate {
+					typeStr = "private"
+				}
+				options[i] = channelOption{
+					Name:      ch.Name,
+					ID:        ch.ID,
+					Type:      typeStr,
+					Members:   ch.NumMembers,
+					IsPrivate: ch.IsPrivate,
+				}
+			}
+
+			// Plain mode - just print the list
+			if plain {
+				for _, opt := range options {
+					prefix := "[P]"
+					if opt.IsPrivate {
+						prefix = "[L]"
+					}
+					fmt.Printf("%s #%s\n", prefix, opt.Name)
+					fmt.Printf("  %s\n", opt.ID)
+					fmt.Printf("  %s, %d members\n", opt.Type, opt.Members)
+					fmt.Println()
+				}
+				return nil
+			}
+
+			// Interactive mode
+			selected, err := cli.Select("Select a channel", options, func(c channelOption) string {
 				prefix := "[P]"
-				if opt.IsPrivate {
+				if c.IsPrivate {
 					prefix = "[L]"
 				}
-				fmt.Printf("%s #%s\n", prefix, opt.Name)
-				fmt.Printf("  %s\n", opt.ID)
-				fmt.Printf("  %s, %d members\n", opt.Type, opt.Members)
-				fmt.Println()
-			}
-			return nil
-		}
+				return fmt.Sprintf("%s #%s  %s (%d members)", prefix, c.Name, cli.Muted(c.Type), c.Members)
+			})
 
-		// Interactive mode
-		selected, err := cli.Select("Select a channel", options, func(c channelOption) string {
+			if err != nil {
+				// User cancelled - show list
+				for _, opt := range options {
+					prefix := "[P]"
+					if opt.IsPrivate {
+						prefix = "[L]"
+					}
+					fmt.Printf("%s #%s\n", prefix, opt.Name)
+					fmt.Printf("  %s %s\n", cli.Muted("ID:"), opt.ID)
+					fmt.Println()
+				}
+				return nil
+			}
+
+			// Show selected item details
+			fmt.Println()
+			cli.PrintHeader("Selected Channel")
+			fmt.Println()
 			prefix := "[P]"
-			if c.IsPrivate {
+			if selected.IsPrivate {
 				prefix = "[L]"
 			}
-			return fmt.Sprintf("%s #%s  %s (%d members)", prefix, c.Name, cli.Muted(c.Type), c.Members)
-		})
+			fmt.Printf("  %s %s#%s\n", cli.Muted("Name:"), prefix, selected.Name)
+			fmt.Printf("  %s %s\n", cli.Muted("Type:"), selected.Type)
+			fmt.Printf("  %s %d\n", cli.Muted("Members:"), selected.Members)
+			fmt.Println()
+			fmt.Printf("  %s\n", cli.Bold("ID (copy this):"))
+			fmt.Printf("  %s\n", selected.ID)
+			fmt.Println()
+			cli.PrintTip(fmt.Sprintf("Use in workflow: slack.send(client, \"#%s\", \"Hello!\")", selected.Name))
 
-		if err != nil {
-			// User cancelled - show list
-			for _, opt := range options {
-				prefix := "[P]"
-				if opt.IsPrivate {
-					prefix = "[L]"
-				}
-				fmt.Printf("%s #%s\n", prefix, opt.Name)
-				fmt.Printf("  %s %s\n", cli.Muted("ID:"), opt.ID)
-				fmt.Println()
-			}
 			return nil
-		}
+		},
+	}
 
-		// Show selected item details
-		fmt.Println()
-		cli.PrintHeader("Selected Channel")
-		fmt.Println()
-		prefix := "[P]"
-		if selected.IsPrivate {
-			prefix = "[L]"
-		}
-		fmt.Printf("  %s %s#%s\n", cli.Muted("Name:"), prefix, selected.Name)
-		fmt.Printf("  %s %s\n", cli.Muted("Type:"), selected.Type)
-		fmt.Printf("  %s %d\n", cli.Muted("Members:"), selected.Members)
-		fmt.Println()
-		fmt.Printf("  %s\n", cli.Bold("ID (copy this):"))
-		fmt.Printf("  %s\n", selected.ID)
-		fmt.Println()
-		cli.PrintTip(fmt.Sprintf("Use in workflow: slack.send(client, \"#%s\", \"Hello!\")", selected.Name))
+	cmd.Flags().BoolVar(&showPrivate, "private", false, "Include private channels")
+	cmd.Flags().BoolVar(&showArchived, "archived", false, "Include archived channels")
+	cmd.Flags().BoolVar(&plain, "plain", false, "Plain output (non-interactive)")
 
-		return nil
-	},
-}
-
-cmd.Flags().BoolVar(&showPrivate, "private", false, "Include private channels")
-cmd.Flags().BoolVar(&showArchived, "archived", false, "Include archived channels")
-cmd.Flags().BoolVar(&plain, "plain", false, "Plain output (non-interactive)")
-
-return cmd
+	return cmd
 }
 
 func findChannelCmd() *cobra.Command {
@@ -201,7 +201,7 @@ Examples:
 				name := strings.ToLower(ch.Name)
 				purpose := strings.ToLower(ch.Purpose.Value)
 
-					if strings.Contains(name, searchTerm) || strings.Contains(purpose, searchTerm) {
+				if strings.Contains(name, searchTerm) || strings.Contains(purpose, searchTerm) {
 					matches = append(matches, struct {
 						Name      string
 						ID        string
@@ -216,107 +216,107 @@ Examples:
 				}
 			}
 
-		if len(matches) == 0 {
-			cli.PrintWarning("No channels found matching: %s", args[0])
-			return nil
-		}
-
-		cli.PrintSuccess("Found %d channel(s) matching \"%s\"", len(matches), args[0])
-		fmt.Println()
-
-		type channelOption struct {
-			Name      string
-			ID        string
-			Type      string
-			Purpose   string
-			IsPrivate bool
-		}
-
-		options := make([]channelOption, len(matches))
-		for i, ch := range matches {
-			typeStr := "public"
-			if ch.IsPrivate {
-				typeStr = "private"
+			if len(matches) == 0 {
+				cli.PrintWarning("No channels found matching: %s", args[0])
+				return nil
 			}
-			options[i] = channelOption{
-				Name:      ch.Name,
-				ID:        ch.ID,
-				Type:      typeStr,
-				Purpose:   ch.Purpose,
-				IsPrivate: ch.IsPrivate,
-			}
-		}
 
-		// Plain mode
-		if plain {
-			for _, opt := range options {
+			cli.PrintSuccess("Found %d channel(s) matching \"%s\"", len(matches), args[0])
+			fmt.Println()
+
+			type channelOption struct {
+				Name      string
+				ID        string
+				Type      string
+				Purpose   string
+				IsPrivate bool
+			}
+
+			options := make([]channelOption, len(matches))
+			for i, ch := range matches {
+				typeStr := "public"
+				if ch.IsPrivate {
+					typeStr = "private"
+				}
+				options[i] = channelOption{
+					Name:      ch.Name,
+					ID:        ch.ID,
+					Type:      typeStr,
+					Purpose:   ch.Purpose,
+					IsPrivate: ch.IsPrivate,
+				}
+			}
+
+			// Plain mode
+			if plain {
+				for _, opt := range options {
+					prefix := "[P]"
+					if opt.IsPrivate {
+						prefix = "[L]"
+					}
+					fmt.Printf("%s #%s\n", prefix, opt.Name)
+					fmt.Printf("  %s\n", opt.ID)
+					if opt.Purpose != "" {
+						fmt.Printf("  %s\n", opt.Purpose)
+					}
+					fmt.Println()
+				}
+				return nil
+			}
+
+			// Interactive mode
+			selected, err := cli.Select("Select a channel", options, func(c channelOption) string {
 				prefix := "[P]"
-				if opt.IsPrivate {
+				if c.IsPrivate {
 					prefix = "[L]"
 				}
-				fmt.Printf("%s #%s\n", prefix, opt.Name)
-				fmt.Printf("  %s\n", opt.ID)
-				if opt.Purpose != "" {
-					fmt.Printf("  %s\n", opt.Purpose)
+				purpose := c.Purpose
+				if purpose != "" {
+					purpose = cli.Truncate(purpose, 40)
+				} else {
+					purpose = "No purpose"
 				}
-				fmt.Println()
-			}
-			return nil
-		}
+				return fmt.Sprintf("%s #%s  %s", prefix, c.Name, cli.Muted("("+purpose+")"))
+			})
 
-		// Interactive mode
-		selected, err := cli.Select("Select a channel", options, func(c channelOption) string {
+			if err != nil {
+				// User cancelled - show list
+				for _, opt := range options {
+					prefix := "[P]"
+					if opt.IsPrivate {
+						prefix = "[L]"
+					}
+					fmt.Printf("%s #%s\n", prefix, opt.Name)
+					fmt.Printf("  %s %s\n", cli.Muted("ID:"), opt.ID)
+					fmt.Println()
+				}
+				return nil
+			}
+
+			// Show selected item details
+			fmt.Println()
+			cli.PrintHeader("Selected Channel")
+			fmt.Println()
 			prefix := "[P]"
-			if c.IsPrivate {
+			if selected.IsPrivate {
 				prefix = "[L]"
 			}
-			purpose := c.Purpose
-			if purpose != "" {
-				purpose = cli.Truncate(purpose, 40)
-			} else {
-				purpose = "No purpose"
+			fmt.Printf("  %s %s#%s\n", cli.Muted("Name:"), prefix, selected.Name)
+			fmt.Printf("  %s %s\n", cli.Muted("Type:"), selected.Type)
+			if selected.Purpose != "" {
+				fmt.Printf("  %s %s\n", cli.Muted("Purpose:"), selected.Purpose)
 			}
-			return fmt.Sprintf("%s #%s  %s", prefix, c.Name, cli.Muted("("+purpose+")"))
-		})
+			fmt.Println()
+			fmt.Printf("  %s\n", cli.Bold("ID (copy this):"))
+			fmt.Printf("  %s\n", selected.ID)
+			fmt.Println()
+			cli.PrintTip(fmt.Sprintf("Use in workflow: slack.send(client, \"#%s\", \"Hello!\")", selected.Name))
 
-		if err != nil {
-			// User cancelled - show list
-			for _, opt := range options {
-				prefix := "[P]"
-				if opt.IsPrivate {
-					prefix = "[L]"
-				}
-				fmt.Printf("%s #%s\n", prefix, opt.Name)
-				fmt.Printf("  %s %s\n", cli.Muted("ID:"), opt.ID)
-				fmt.Println()
-			}
 			return nil
-		}
+		},
+	}
 
-		// Show selected item details
-		fmt.Println()
-		cli.PrintHeader("Selected Channel")
-		fmt.Println()
-		prefix := "[P]"
-		if selected.IsPrivate {
-			prefix = "[L]"
-		}
-		fmt.Printf("  %s %s#%s\n", cli.Muted("Name:"), prefix, selected.Name)
-		fmt.Printf("  %s %s\n", cli.Muted("Type:"), selected.Type)
-		if selected.Purpose != "" {
-			fmt.Printf("  %s %s\n", cli.Muted("Purpose:"), selected.Purpose)
-		}
-		fmt.Println()
-		fmt.Printf("  %s\n", cli.Bold("ID (copy this):"))
-		fmt.Printf("  %s\n", selected.ID)
-		fmt.Println()
-		cli.PrintTip(fmt.Sprintf("Use in workflow: slack.send(client, \"#%s\", \"Hello!\")", selected.Name))
+	cmd.Flags().BoolVar(&plain, "plain", false, "Plain output (non-interactive)")
 
-		return nil
-	},
-}
-
-cmd.Flags().BoolVar(&plain, "plain", false, "Plain output (non-interactive)")
-
-return cmd
+	return cmd
 }

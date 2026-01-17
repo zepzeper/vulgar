@@ -11,18 +11,18 @@ import (
 )
 
 var clientMethods = map[string]lua.LGFunction{
-	"send":            luaClientSend,
-	"send_blocks":     luaClientSendBlocks,
-	"upload_file":     luaClientUploadFile,
-	"list_channels":   luaClientListChannels,
-	"get_user":        luaClientGetUser,
-	"list_users":      luaClientListUsers,
-	"get_channel":     luaClientGetChannel,
-	"react":           luaClientReact,
-	"update_message":  luaClientUpdateMessage,
-	"delete_message":  luaClientDeleteMessage,
-	"pin_message":     luaClientPinMessage,
-	"unpin_message":   luaClientUnpinMessage,
+	"send":           luaClientSend,
+	"send_blocks":    luaClientSendBlocks,
+	"upload_file":    luaClientUploadFile,
+	"list_channels":  luaClientListChannels,
+	"get_user":       luaClientGetUser,
+	"list_users":     luaClientListUsers,
+	"get_channel":    luaClientGetChannel,
+	"react":          luaClientReact,
+	"update_message": luaClientUpdateMessage,
+	"delete_message": luaClientDeleteMessage,
+	"pin_message":    luaClientPinMessage,
+	"unpin_message":  luaClientUnpinMessage,
 }
 
 func registerSlackClientType(L *lua.LState) {

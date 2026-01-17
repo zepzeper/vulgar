@@ -101,4 +101,3 @@ func TestStringReader(t *testing.T) {
 		t.Errorf("Expected ', Wor', got '%s'", string(buf))
 	}
 }
-

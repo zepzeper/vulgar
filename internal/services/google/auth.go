@@ -26,9 +26,9 @@ const (
 )
 
 var scopes = []string{
-	drive.DriveScope,               // Full access to Drive (read/write)
-	sheets.SpreadsheetsScope,       // Full access to Sheets (read/write)
-	calendar.CalendarScope,         // Full access to Calendar (read/write)
+	drive.DriveScope,         // Full access to Drive (read/write)
+	sheets.SpreadsheetsScope, // Full access to Sheets (read/write)
+	calendar.CalendarScope,   // Full access to Calendar (read/write)
 	"https://www.googleapis.com/auth/userinfo.email",
 }
 

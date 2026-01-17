@@ -6,9 +6,9 @@ import (
 )
 
 type ListOptions struct {
-	PerPage int
-	Page    int
-	Sort    string // created, updated, pushed, full_name
+	PerPage   int
+	Page      int
+	Sort      string // created, updated, pushed, full_name
 	Direction string // asc, desc
 }
 
@@ -20,11 +20,11 @@ type RepoListOptions struct {
 
 type IssueListOptions struct {
 	ListOptions
-	State     string // open, closed, all
-	Labels    string // comma-separated
-	Since     string // ISO8601 timestamp
-	Assignee  string
-	Creator   string
+	State    string // open, closed, all
+	Labels   string // comma-separated
+	Since    string // ISO8601 timestamp
+	Assignee string
+	Creator  string
 }
 
 type PullRequestListOptions struct {

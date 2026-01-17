@@ -108,4 +108,3 @@ func luaCreateSpreadsheet(L *lua.LState) int {
 	L.Push(lua.LNil)
 	return 2
 }
-

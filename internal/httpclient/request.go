@@ -303,4 +303,3 @@ func (mb *MultipartBuilder) Do() (*Response, error) {
 
 	return NewResponse(resp)
 }
-

@@ -20,8 +20,8 @@ type Client struct {
 }
 
 type ClientOptions struct {
-	Token string
-	URL string
+	Token    string
+	URL      string
 	Projects []string
 }
 

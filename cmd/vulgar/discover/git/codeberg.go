@@ -119,108 +119,108 @@ Examples:
 				return nil
 			}
 
-		cli.PrintDone()
+			cli.PrintDone()
 
-		if len(repos) == 0 {
-			cli.PrintWarning("No repositories found")
-			return nil
-		}
+			if len(repos) == 0 {
+				cli.PrintWarning("No repositories found")
+				return nil
+			}
 
-		cli.PrintSuccess("Found %d repository(ies)", len(repos))
-		fmt.Println()
+			cli.PrintSuccess("Found %d repository(ies)", len(repos))
+			fmt.Println()
 
-		repoInfos := make([]RepoInfo, 0, len(repos))
-		for _, r := range repos {
-			repoInfos = append(repoInfos, RepoInfo{
-				ID:          r.ID,
-				Name:        r.Name,
-				FullName:    r.FullName,
-				Description: r.Description,
-				Private:     r.Private,
-				URL:         r.HTMLURL,
-				CloneURL:    r.SSHURL,
-				Language:    r.Language,
-				Stars:       r.Stars,
-				Forks:       r.Forks,
-				UpdatedAt:   r.UpdatedAt,
+			repoInfos := make([]RepoInfo, 0, len(repos))
+			for _, r := range repos {
+				repoInfos = append(repoInfos, RepoInfo{
+					ID:          r.ID,
+					Name:        r.Name,
+					FullName:    r.FullName,
+					Description: r.Description,
+					Private:     r.Private,
+					URL:         r.HTMLURL,
+					CloneURL:    r.SSHURL,
+					Language:    r.Language,
+					Stars:       r.Stars,
+					Forks:       r.Forks,
+					UpdatedAt:   r.UpdatedAt,
+				})
+			}
+
+			// Plain mode
+			if plain {
+				for _, repo := range repoInfos {
+					visibility := ""
+					if repo.Private {
+						visibility = " [P]"
+					}
+					fmt.Printf("%s%s\n", repo.Name, visibility)
+					fmt.Printf("  %s\n", repo.FullName)
+					if repo.Description != "" {
+						fmt.Printf("  %s\n", repo.Description)
+					}
+					fmt.Printf("  %s\n", repo.CloneURL)
+					fmt.Println()
+				}
+				return nil
+			}
+
+			// Interactive mode
+			selected, err := cli.Select("Select a repository", repoInfos, func(r RepoInfo) string {
+				visibility := ""
+				if r.Private {
+					visibility = " [P]"
+				}
+				desc := r.Description
+				if desc == "" {
+					desc = "No description"
+				}
+				return fmt.Sprintf("%s%s  %s", r.Name, visibility, cli.Muted("("+cli.Truncate(desc, 40)+")"))
 			})
-		}
 
-		// Plain mode
-		if plain {
-			for _, repo := range repoInfos {
-				visibility := ""
-				if repo.Private {
-					visibility = " [P]"
+			if err != nil {
+				// User cancelled - show list
+				for _, repo := range repoInfos {
+					visibility := ""
+					if repo.Private {
+						visibility = " [P]"
+					}
+					fmt.Printf("%s%s\n", repo.Name, visibility)
+					fmt.Printf("  %s\n", repo.FullName)
+					fmt.Println()
 				}
-				fmt.Printf("%s%s\n", repo.Name, visibility)
-				fmt.Printf("  %s\n", repo.FullName)
-				if repo.Description != "" {
-					fmt.Printf("  %s\n", repo.Description)
-				}
-				fmt.Printf("  %s\n", repo.CloneURL)
-				fmt.Println()
+				return nil
 			}
+
+			// Show selected item details
+			fmt.Println()
+			cli.PrintHeader("Selected Repository")
+			fmt.Println()
+			fmt.Printf("  %s %s\n", cli.Muted("Name:"), selected.Name)
+			fmt.Printf("  %s %s\n", cli.Muted("Full Name:"), selected.FullName)
+			if selected.Description != "" {
+				fmt.Printf("  %s %s\n", cli.Muted("Description:"), selected.Description)
+			}
+			if selected.Language != "" {
+				fmt.Printf("  %s %s\n", cli.Muted("Language:"), selected.Language)
+			}
+			fmt.Printf("  %s %d stars, %d forks\n", cli.Muted("Stats:"), selected.Stars, selected.Forks)
+			fmt.Printf("  %s %s\n", cli.Muted("Updated:"), formatTimeAgo(selected.UpdatedAt))
+			fmt.Println()
+			fmt.Printf("  %s\n", cli.Bold("Clone URL (copy this):"))
+			fmt.Printf("  %s\n", selected.CloneURL)
+			fmt.Printf("  %s\n", selected.URL)
+			fmt.Println()
+			cli.PrintTip(fmt.Sprintf("Clone with: git clone %s", selected.CloneURL))
+
 			return nil
-		}
+		},
+	}
 
-		// Interactive mode
-		selected, err := cli.Select("Select a repository", repoInfos, func(r RepoInfo) string {
-			visibility := ""
-			if r.Private {
-				visibility = " [P]"
-			}
-			desc := r.Description
-			if desc == "" {
-				desc = "No description"
-			}
-			return fmt.Sprintf("%s%s  %s", r.Name, visibility, cli.Muted("("+cli.Truncate(desc, 40)+")"))
-		})
+	cmd.Flags().StringVar(&owner, "owner", "", "Repository owner (user or org)")
+	cmd.Flags().IntVar(&limit, "limit", 20, "Maximum number of results")
+	cmd.Flags().BoolVar(&plain, "plain", false, "Plain output (non-interactive)")
 
-		if err != nil {
-			// User cancelled - show list
-			for _, repo := range repoInfos {
-				visibility := ""
-				if repo.Private {
-					visibility = " [P]"
-				}
-				fmt.Printf("%s%s\n", repo.Name, visibility)
-				fmt.Printf("  %s\n", repo.FullName)
-				fmt.Println()
-			}
-			return nil
-		}
-
-		// Show selected item details
-		fmt.Println()
-		cli.PrintHeader("Selected Repository")
-		fmt.Println()
-		fmt.Printf("  %s %s\n", cli.Muted("Name:"), selected.Name)
-		fmt.Printf("  %s %s\n", cli.Muted("Full Name:"), selected.FullName)
-		if selected.Description != "" {
-			fmt.Printf("  %s %s\n", cli.Muted("Description:"), selected.Description)
-		}
-		if selected.Language != "" {
-			fmt.Printf("  %s %s\n", cli.Muted("Language:"), selected.Language)
-		}
-		fmt.Printf("  %s %d stars, %d forks\n", cli.Muted("Stats:"), selected.Stars, selected.Forks)
-		fmt.Printf("  %s %s\n", cli.Muted("Updated:"), formatTimeAgo(selected.UpdatedAt))
-		fmt.Println()
-		fmt.Printf("  %s\n", cli.Bold("Clone URL (copy this):"))
-		fmt.Printf("  %s\n", selected.CloneURL)
-		fmt.Printf("  %s\n", selected.URL)
-		fmt.Println()
-		cli.PrintTip(fmt.Sprintf("Clone with: git clone %s", selected.CloneURL))
-
-		return nil
-	},
-}
-
-cmd.Flags().StringVar(&owner, "owner", "", "Repository owner (user or org)")
-cmd.Flags().IntVar(&limit, "limit", 20, "Maximum number of results")
-cmd.Flags().BoolVar(&plain, "plain", false, "Plain output (non-interactive)")
-
-return cmd
+	return cmd
 }
 
 func codebergIssuesCmd() *cobra.Command {
@@ -266,109 +266,109 @@ Examples:
 				return nil
 			}
 
-		cli.PrintDone()
+			cli.PrintDone()
 
-		if len(issues) == 0 {
-			cli.PrintWarning("No issues found")
-			return nil
-		}
-
-		cli.PrintSuccess("Found %d issue(s)", len(issues))
-		fmt.Println()
-
-		issueInfos := make([]IssueInfo, 0, len(issues))
-		for _, i := range issues {
-			author := ""
-			if i.User != nil {
-				author = i.User.Login
+			if len(issues) == 0 {
+				cli.PrintWarning("No issues found")
+				return nil
 			}
 
-			issueInfos = append(issueInfos, IssueInfo{
-				Number:    i.Number,
-				Title:     i.Title,
-				State:     i.State,
-				Author:    author,
-				CreatedAt: i.CreatedAt,
-				UpdatedAt: i.UpdatedAt,
-				URL:       i.HTMLURL,
+			cli.PrintSuccess("Found %d issue(s)", len(issues))
+			fmt.Println()
+
+			issueInfos := make([]IssueInfo, 0, len(issues))
+			for _, i := range issues {
+				author := ""
+				if i.User != nil {
+					author = i.User.Login
+				}
+
+				issueInfos = append(issueInfos, IssueInfo{
+					Number:    i.Number,
+					Title:     i.Title,
+					State:     i.State,
+					Author:    author,
+					CreatedAt: i.CreatedAt,
+					UpdatedAt: i.UpdatedAt,
+					URL:       i.HTMLURL,
+				})
+			}
+
+			// Plain mode
+			if plain {
+				for _, issue := range issueInfos {
+					fmt.Printf("#%d %s\n", issue.Number, issue.Title)
+					fmt.Printf("  %s\n", issue.URL)
+					fmt.Println()
+				}
+				return nil
+			}
+
+			// Create comparable wrapper type for selection
+			type issueSelect struct {
+				Number    int
+				Title     string
+				State     string
+				Author    string
+				CreatedAt string
+				UpdatedAt string
+				URL       string
+			}
+			selectOptions := make([]issueSelect, len(issueInfos))
+			for i, issue := range issueInfos {
+				selectOptions[i] = issueSelect{
+					Number:    issue.Number,
+					Title:     issue.Title,
+					State:     issue.State,
+					Author:    issue.Author,
+					CreatedAt: issue.CreatedAt,
+					UpdatedAt: issue.UpdatedAt,
+					URL:       issue.URL,
+				}
+			}
+
+			// Interactive mode
+			selected, err := cli.Select("Select an issue", selectOptions, func(i issueSelect) string {
+				return fmt.Sprintf("#%d %s  %s", i.Number, i.Title, cli.Muted("("+i.State+", "+formatTimeAgo(i.UpdatedAt)+")"))
 			})
-		}
 
-		// Plain mode
-		if plain {
-			for _, issue := range issueInfos {
-				fmt.Printf("#%d %s\n", issue.Number, issue.Title)
-				fmt.Printf("  %s\n", issue.URL)
-				fmt.Println()
+			if err != nil {
+				// User cancelled - show list
+				for _, issue := range issueInfos {
+					fmt.Printf("#%d %s\n", issue.Number, issue.Title)
+					fmt.Println()
+				}
+				return nil
 			}
+
+			// Show selected item details
+			fmt.Println()
+			cli.PrintHeader("Selected Issue")
+			fmt.Println()
+			fmt.Printf("  %s #%d\n", cli.Muted("Number:"), selected.Number)
+			fmt.Printf("  %s %s\n", cli.Muted("Title:"), selected.Title)
+			fmt.Printf("  %s %s\n", cli.Muted("State:"), selected.State)
+			if selected.Author != "" {
+				fmt.Printf("  %s %s\n", cli.Muted("Author:"), selected.Author)
+			}
+			fmt.Printf("  %s %s\n", cli.Muted("Created:"), formatTimeAgo(selected.CreatedAt))
+			fmt.Printf("  %s %s\n", cli.Muted("Updated:"), formatTimeAgo(selected.UpdatedAt))
+			fmt.Println()
+			fmt.Printf("  %s\n", cli.Bold("URL (copy this):"))
+			fmt.Printf("  %s\n", selected.URL)
+			fmt.Println()
+			cli.PrintTip(fmt.Sprintf("View issue: %s", selected.URL))
+
 			return nil
-		}
+		},
+	}
 
-		// Create comparable wrapper type for selection
-		type issueSelect struct {
-			Number    int
-			Title     string
-			State     string
-			Author    string
-			CreatedAt string
-			UpdatedAt string
-			URL       string
-		}
-		selectOptions := make([]issueSelect, len(issueInfos))
-		for i, issue := range issueInfos {
-			selectOptions[i] = issueSelect{
-				Number:    issue.Number,
-				Title:     issue.Title,
-				State:     issue.State,
-				Author:    issue.Author,
-				CreatedAt: issue.CreatedAt,
-				UpdatedAt: issue.UpdatedAt,
-				URL:       issue.URL,
-			}
-		}
+	cmd.Flags().StringVar(&repo, "repo", "", "Repository (owner/repo)")
+	cmd.Flags().StringVar(&state, "state", "open", "Issue state (open, closed, all)")
+	cmd.Flags().IntVar(&limit, "limit", 20, "Maximum number of results")
+	cmd.Flags().BoolVar(&plain, "plain", false, "Plain output (non-interactive)")
 
-		// Interactive mode
-		selected, err := cli.Select("Select an issue", selectOptions, func(i issueSelect) string {
-			return fmt.Sprintf("#%d %s  %s", i.Number, i.Title, cli.Muted("("+i.State+", "+formatTimeAgo(i.UpdatedAt)+")"))
-		})
-
-		if err != nil {
-			// User cancelled - show list
-			for _, issue := range issueInfos {
-				fmt.Printf("#%d %s\n", issue.Number, issue.Title)
-				fmt.Println()
-			}
-			return nil
-		}
-
-		// Show selected item details
-		fmt.Println()
-		cli.PrintHeader("Selected Issue")
-		fmt.Println()
-		fmt.Printf("  %s #%d\n", cli.Muted("Number:"), selected.Number)
-		fmt.Printf("  %s %s\n", cli.Muted("Title:"), selected.Title)
-		fmt.Printf("  %s %s\n", cli.Muted("State:"), selected.State)
-		if selected.Author != "" {
-			fmt.Printf("  %s %s\n", cli.Muted("Author:"), selected.Author)
-		}
-		fmt.Printf("  %s %s\n", cli.Muted("Created:"), formatTimeAgo(selected.CreatedAt))
-		fmt.Printf("  %s %s\n", cli.Muted("Updated:"), formatTimeAgo(selected.UpdatedAt))
-		fmt.Println()
-		fmt.Printf("  %s\n", cli.Bold("URL (copy this):"))
-		fmt.Printf("  %s\n", selected.URL)
-		fmt.Println()
-		cli.PrintTip(fmt.Sprintf("View issue: %s", selected.URL))
-
-		return nil
-	},
-}
-
-cmd.Flags().StringVar(&repo, "repo", "", "Repository (owner/repo)")
-cmd.Flags().StringVar(&state, "state", "open", "Issue state (open, closed, all)")
-cmd.Flags().IntVar(&limit, "limit", 20, "Maximum number of results")
-cmd.Flags().BoolVar(&plain, "plain", false, "Plain output (non-interactive)")
-
-return cmd
+	return cmd
 }
 
 func codebergPRsCmd() *cobra.Command {
@@ -414,116 +414,116 @@ Examples:
 				return nil
 			}
 
-		cli.PrintDone()
+			cli.PrintDone()
 
-		if len(prs) == 0 {
-			cli.PrintWarning("No pull requests found")
-			return nil
-		}
-
-		cli.PrintSuccess("Found %d pull request(s)", len(prs))
-		fmt.Println()
-
-		prInfos := make([]PRInfo, 0, len(prs))
-		for _, pr := range prs {
-			author := ""
-			if pr.User != nil {
-				author = pr.User.Login
+			if len(prs) == 0 {
+				cli.PrintWarning("No pull requests found")
+				return nil
 			}
 
-			sourceBranch := ""
-			if pr.Head != nil {
-				sourceBranch = pr.Head.Ref
+			cli.PrintSuccess("Found %d pull request(s)", len(prs))
+			fmt.Println()
+
+			prInfos := make([]PRInfo, 0, len(prs))
+			for _, pr := range prs {
+				author := ""
+				if pr.User != nil {
+					author = pr.User.Login
+				}
+
+				sourceBranch := ""
+				if pr.Head != nil {
+					sourceBranch = pr.Head.Ref
+				}
+
+				targetBranch := ""
+				if pr.Base != nil {
+					targetBranch = pr.Base.Ref
+				}
+
+				prInfos = append(prInfos, PRInfo{
+					Number:       pr.Number,
+					Title:        pr.Title,
+					State:        pr.State,
+					Author:       author,
+					SourceBranch: sourceBranch,
+					TargetBranch: targetBranch,
+					IsMerged:     pr.Merged,
+					CreatedAt:    pr.CreatedAt,
+					UpdatedAt:    pr.UpdatedAt,
+					URL:          pr.HTMLURL,
+				})
 			}
 
-			targetBranch := ""
-			if pr.Base != nil {
-				targetBranch = pr.Base.Ref
+			// Plain mode
+			if plain {
+				for _, pr := range prInfos {
+					state := pr.State
+					if pr.IsMerged {
+						state = "merged"
+					}
+					fmt.Printf("#%d %s [%s]\n", pr.Number, pr.Title, state)
+					fmt.Printf("  %s\n", pr.URL)
+					fmt.Println()
+				}
+				return nil
 			}
 
-			prInfos = append(prInfos, PRInfo{
-				Number:       pr.Number,
-				Title:        pr.Title,
-				State:        pr.State,
-				Author:       author,
-				SourceBranch: sourceBranch,
-				TargetBranch: targetBranch,
-				IsMerged:     pr.Merged,
-				CreatedAt:    pr.CreatedAt,
-				UpdatedAt:    pr.UpdatedAt,
-				URL:          pr.HTMLURL,
-			})
-		}
-
-		// Plain mode
-		if plain {
-			for _, pr := range prInfos {
-				state := pr.State
-				if pr.IsMerged {
+			// Interactive mode
+			selected, err := cli.Select("Select a pull request", prInfos, func(p PRInfo) string {
+				state := p.State
+				if p.IsMerged {
 					state = "merged"
 				}
-				fmt.Printf("#%d %s [%s]\n", pr.Number, pr.Title, state)
-				fmt.Printf("  %s\n", pr.URL)
-				fmt.Println()
-			}
-			return nil
-		}
+				return fmt.Sprintf("#%d %s  %s", p.Number, p.Title, cli.Muted("("+state+", "+formatTimeAgo(p.UpdatedAt)+")"))
+			})
 
-		// Interactive mode
-		selected, err := cli.Select("Select a pull request", prInfos, func(p PRInfo) string {
-			state := p.State
-			if p.IsMerged {
+			if err != nil {
+				// User cancelled - show list
+				for _, pr := range prInfos {
+					state := pr.State
+					if pr.IsMerged {
+						state = "merged"
+					}
+					fmt.Printf("#%d %s [%s]\n", pr.Number, pr.Title, state)
+					fmt.Println()
+				}
+				return nil
+			}
+
+			// Show selected item details
+			fmt.Println()
+			cli.PrintHeader("Selected Pull Request")
+			fmt.Println()
+			fmt.Printf("  %s #%d\n", cli.Muted("Number:"), selected.Number)
+			fmt.Printf("  %s %s\n", cli.Muted("Title:"), selected.Title)
+			state := selected.State
+			if selected.IsMerged {
 				state = "merged"
 			}
-			return fmt.Sprintf("#%d %s  %s", p.Number, p.Title, cli.Muted("("+state+", "+formatTimeAgo(p.UpdatedAt)+")"))
-		})
-
-		if err != nil {
-			// User cancelled - show list
-			for _, pr := range prInfos {
-				state := pr.State
-				if pr.IsMerged {
-					state = "merged"
-				}
-				fmt.Printf("#%d %s [%s]\n", pr.Number, pr.Title, state)
-				fmt.Println()
+			fmt.Printf("  %s %s\n", cli.Muted("State:"), state)
+			if selected.Author != "" {
+				fmt.Printf("  %s %s\n", cli.Muted("Author:"), selected.Author)
 			}
+			if selected.SourceBranch != "" && selected.TargetBranch != "" {
+				fmt.Printf("  %s %s -> %s\n", cli.Muted("Branches:"), selected.SourceBranch, selected.TargetBranch)
+			}
+			fmt.Printf("  %s %s\n", cli.Muted("Created:"), formatTimeAgo(selected.CreatedAt))
+			fmt.Printf("  %s %s\n", cli.Muted("Updated:"), formatTimeAgo(selected.UpdatedAt))
+			fmt.Println()
+			fmt.Printf("  %s\n", cli.Bold("URL (copy this):"))
+			fmt.Printf("  %s\n", selected.URL)
+			fmt.Println()
+			cli.PrintTip(fmt.Sprintf("View PR: %s", selected.URL))
+
 			return nil
-		}
+		},
+	}
 
-		// Show selected item details
-		fmt.Println()
-		cli.PrintHeader("Selected Pull Request")
-		fmt.Println()
-		fmt.Printf("  %s #%d\n", cli.Muted("Number:"), selected.Number)
-		fmt.Printf("  %s %s\n", cli.Muted("Title:"), selected.Title)
-		state := selected.State
-		if selected.IsMerged {
-			state = "merged"
-		}
-		fmt.Printf("  %s %s\n", cli.Muted("State:"), state)
-		if selected.Author != "" {
-			fmt.Printf("  %s %s\n", cli.Muted("Author:"), selected.Author)
-		}
-		if selected.SourceBranch != "" && selected.TargetBranch != "" {
-			fmt.Printf("  %s %s -> %s\n", cli.Muted("Branches:"), selected.SourceBranch, selected.TargetBranch)
-		}
-		fmt.Printf("  %s %s\n", cli.Muted("Created:"), formatTimeAgo(selected.CreatedAt))
-		fmt.Printf("  %s %s\n", cli.Muted("Updated:"), formatTimeAgo(selected.UpdatedAt))
-		fmt.Println()
-		fmt.Printf("  %s\n", cli.Bold("URL (copy this):"))
-		fmt.Printf("  %s\n", selected.URL)
-		fmt.Println()
-		cli.PrintTip(fmt.Sprintf("View PR: %s", selected.URL))
+	cmd.Flags().StringVar(&repo, "repo", "", "Repository (owner/repo)")
+	cmd.Flags().StringVar(&state, "state", "open", "PR state (open, closed, all)")
+	cmd.Flags().IntVar(&limit, "limit", 20, "Maximum number of results")
+	cmd.Flags().BoolVar(&plain, "plain", false, "Plain output (non-interactive)")
 
-		return nil
-	},
-}
-
-cmd.Flags().StringVar(&repo, "repo", "", "Repository (owner/repo)")
-cmd.Flags().StringVar(&state, "state", "open", "PR state (open, closed, all)")
-cmd.Flags().IntVar(&limit, "limit", 20, "Maximum number of results")
-cmd.Flags().BoolVar(&plain, "plain", false, "Plain output (non-interactive)")
-
-return cmd
+	return cmd
 }

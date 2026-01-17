@@ -102,4 +102,3 @@ func columnToLetter(col int) string {
 	}
 	return result
 }
-

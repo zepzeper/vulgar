@@ -202,11 +202,11 @@ func TestRequestBuilder(t *testing.T) {
 
 func TestResponseHelpers(t *testing.T) {
 	tests := []struct {
-		statusCode      int
-		isSuccess       bool
-		isClientError   bool
-		isServerError   bool
-		isError         bool
+		statusCode    int
+		isSuccess     bool
+		isClientError bool
+		isServerError bool
+		isError       bool
 	}{
 		{200, true, false, false, false},
 		{201, true, false, false, false},
@@ -337,4 +337,3 @@ func TestSlackResponseCheck(t *testing.T) {
 		})
 	}
 }
-

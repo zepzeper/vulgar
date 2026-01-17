@@ -5,7 +5,6 @@ import (
 	"github.com/zepzeper/vulgar/internal/modules"
 )
 
-
 var exports = map[string]lua.LGFunction{
 	"client":         luaClient,
 	"send":           luaSend,

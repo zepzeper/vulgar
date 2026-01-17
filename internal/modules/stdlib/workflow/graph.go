@@ -5,10 +5,15 @@ import (
 	"github.com/zepzeper/vulgar/internal/modules/util"
 )
 
+// computeOutputs computes output connections for all nodes (acquires lock)
 func (wf *workflowHandle) computeOutputs() {
 	wf.mu.Lock()
 	defer wf.mu.Unlock()
+	wf.computeOutputsLocked()
+}
 
+// computeOutputsLocked computes output connections assuming lock is already held
+func (wf *workflowHandle) computeOutputsLocked() {
 	for _, node := range wf.nodes {
 		node.outputs = []string{}
 	}
@@ -31,7 +36,6 @@ func (wf *workflowHandle) computeOutputs() {
 			}
 		}
 	}
-
 }
 
 // Usage: local err = workflow.node(wf, "node_name", function(ctx) return result end)
@@ -93,7 +97,7 @@ func luaNode(L *lua.LState) int {
 	wf.nodes[name] = node
 
 	// Recompute outputs for all nodes
-	wf.computeOutputs()
+	wf.computeOutputsLocked()
 
 	L.Push(lua.LNil)
 	return 1
@@ -139,7 +143,7 @@ func luaEdge(L *lua.LState) int {
 	toNode.dependencies = append(toNode.dependencies, fromName)
 
 	// Recompute outputs
-	wf.computeOutputs()
+	wf.computeOutputsLocked()
 
 	L.Push(lua.LNil)
 	return 1

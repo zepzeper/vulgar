@@ -1,15 +1,15 @@
 package slack
 
 type Channel struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	IsPrivate   bool   `json:"is_private"`
-	IsArchived  bool   `json:"is_archived"`
-	IsMember    bool   `json:"is_member"`
-	NumMembers  int    `json:"num_members"`
-	Topic       Topic  `json:"topic"`
-	Purpose     Topic  `json:"purpose"`
-	Created     int64  `json:"created"`
+	ID         string `json:"id"`
+	Name       string `json:"name"`
+	IsPrivate  bool   `json:"is_private"`
+	IsArchived bool   `json:"is_archived"`
+	IsMember   bool   `json:"is_member"`
+	NumMembers int    `json:"num_members"`
+	Topic      Topic  `json:"topic"`
+	Purpose    Topic  `json:"purpose"`
+	Created    int64  `json:"created"`
 }
 
 type Topic struct {
@@ -19,15 +19,15 @@ type Topic struct {
 }
 
 type User struct {
-	ID        string  `json:"id"`
-	Name      string  `json:"name"`
-	RealName  string  `json:"real_name"`
-	Email     string  `json:"email"`
-	IsBot     bool    `json:"is_bot"`
-	IsAdmin   bool    `json:"is_admin"`
-	IsOwner   bool    `json:"is_owner"`
-	Deleted   bool    `json:"deleted"`
-	Profile   Profile `json:"profile"`
+	ID       string  `json:"id"`
+	Name     string  `json:"name"`
+	RealName string  `json:"real_name"`
+	Email    string  `json:"email"`
+	IsBot    bool    `json:"is_bot"`
+	IsAdmin  bool    `json:"is_admin"`
+	IsOwner  bool    `json:"is_owner"`
+	Deleted  bool    `json:"deleted"`
+	Profile  Profile `json:"profile"`
 }
 
 type Profile struct {

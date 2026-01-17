@@ -201,7 +201,7 @@ func luaWorkflowRun(L *lua.LState) int {
 			_ = L.PCall(1, 0, nil) // Ignore error handler errors
 		}
 
-		return util.PushError(L, err.Error())
+		return util.PushError(L, "%s", err.Error())
 	}
 
 	// Return final context as result

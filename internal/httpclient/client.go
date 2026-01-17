@@ -298,4 +298,3 @@ func (c *Client) buildURL(path string) string {
 
 	return base + "/" + path
 }
-

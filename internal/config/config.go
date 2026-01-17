@@ -135,8 +135,8 @@ type AWSConfig struct {
 
 // DefaultsConfig holds default settings
 type DefaultsConfig struct {
-	OutputFormat string `toml:"output_format"` // table, json, yaml
-	Color        bool   `toml:"color"`
+	OutputFormat  string `toml:"output_format"` // table, json, yaml
+	Color         bool   `toml:"color"`
 	WorkflowsPath string `toml:"workflows_path"` // path to workflows directory
 }
 

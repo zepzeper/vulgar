@@ -75,4 +75,3 @@ func TestEventToLuaTable(t *testing.T) {
 	// Note: Full testing requires mocking Google Calendar API
 	// This test just verifies the helper function structure
 }
-

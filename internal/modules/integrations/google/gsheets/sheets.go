@@ -158,4 +158,3 @@ func luaListSheets(L *lua.LState) int {
 	L.Push(lua.LNil)
 	return 2
 }
-

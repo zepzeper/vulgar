@@ -45,7 +45,7 @@ type workflowHandle struct {
 	status       WorkflowStatus
 	errorHandler *lua.LFunction
 	context      *lua.LTable // Shared context (merged from all nodes)
-	output       lua.LValue   // Final output (not a pointer - lua.LValue is an interface)
+	output       lua.LValue  // Final output (not a pointer - lua.LValue is an interface)
 	mu           sync.Mutex
 	cancelled    bool
 }

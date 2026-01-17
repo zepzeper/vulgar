@@ -20,4 +20,3 @@ type Tab interface {
 	// Shortcut returns the keyboard shortcut key for this tab (e.g., "1", "2")
 	Shortcut() string
 }
-

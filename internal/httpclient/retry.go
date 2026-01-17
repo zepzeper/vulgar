@@ -163,4 +163,3 @@ func (c *Client) rateLimitMiddleware(next RoundTripperFunc) RoundTripperFunc {
 		return next(req)
 	}
 }
-

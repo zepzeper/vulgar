@@ -23,10 +23,10 @@ This command tests authentication and displays:
 			client, err := getClient()
 			if err != nil {
 				cli.PrintError("Slack token not configured")
-					fmt.Println()
+				fmt.Println()
 				fmt.Println("  Run: vulgar init")
 				fmt.Println("  Then edit: " + config.ConfigPath())
-					fmt.Println()
+				fmt.Println()
 				fmt.Println("  Set token to your Slack bot token (xoxb-...)")
 				return nil
 			}
@@ -46,7 +46,7 @@ This command tests authentication and displays:
 			fmt.Println()
 
 			cli.PrintHeader("Slack Connection")
-				fmt.Println()
+			fmt.Println()
 
 			botName := ""
 			if v, ok := result["user"].(string); ok {

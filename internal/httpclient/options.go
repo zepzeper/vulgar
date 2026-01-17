@@ -130,4 +130,3 @@ func WithMaxRedirects(max int) Option {
 		}
 	}
 }
-

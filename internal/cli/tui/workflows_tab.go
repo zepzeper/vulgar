@@ -13,11 +13,13 @@ import (
 )
 
 type WorkflowsTab struct {
-	width     int
-	height    int
-	list      list.Model
-	loading   bool
-	error     string
+	width         int
+	height        int
+	list          list.Model
+	loading       bool
+	error         string
+	inspectorMode bool
+	inspector     *WorkflowInspector
 }
 
 type workflowItem struct {
@@ -60,6 +62,22 @@ func (t *WorkflowsTab) Update(msg tea.Msg) (Tab, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
+	// If in inspector mode, forward most messages to inspector
+	if t.inspectorMode && t.inspector != nil {
+		// Handle Esc to exit inspector mode
+		if keyMsg, ok := msg.(tea.KeyMsg); ok && keyMsg.String() == "esc" {
+			t.inspector.Close()
+			t.inspector = nil
+			t.inspectorMode = false
+			return t, nil
+		}
+
+		// Forward all messages to inspector
+		updatedInspector, inspectorCmd := t.inspector.Update(msg)
+		t.inspector = updatedInspector
+		return t, inspectorCmd
+	}
+
 	switch msg := msg.(type) {
 	case workflowsDiscoveredMsg:
 		t.loading = false
@@ -73,10 +91,10 @@ func (t *WorkflowsTab) Update(msg tea.Msg) (Tab, tea.Cmd) {
 			for i, wf := range msg.workflows {
 				items[i] = workflowItem{workflow: wf}
 			}
-			
+
 			// Create custom delegate with better styling
 			delegate := newWorkflowDelegate()
-			
+
 			// Calculate list dimensions
 			listWidth := t.width - 4
 			listHeight := t.height - 8
@@ -86,7 +104,7 @@ func (t *WorkflowsTab) Update(msg tea.Msg) (Tab, tea.Cmd) {
 			if listHeight < 0 {
 				listHeight = 0
 			}
-			
+
 			t.list = list.New(items, delegate, listWidth, listHeight)
 			t.list.Title = ""
 			t.list.SetShowStatusBar(true)
@@ -132,6 +150,15 @@ func (t *WorkflowsTab) Update(msg tea.Msg) (Tab, tea.Cmd) {
 				t.loading = true
 				t.error = ""
 				return t, t.discoverWorkflows
+			case "enter":
+				// Open inspector for selected workflow
+				if selectedItem := t.list.SelectedItem(); selectedItem != nil {
+					if wfItem, ok := selectedItem.(workflowItem); ok {
+						t.inspector = NewWorkflowInspector(wfItem.workflow.FullPath)
+						t.inspectorMode = true
+						return t, t.inspector.Init()
+					}
+				}
 			}
 		}
 	}
@@ -165,6 +192,11 @@ func (t *WorkflowsTab) View(width, height int) string {
 	}
 	if contentHeight < 0 {
 		contentHeight = 0
+	}
+
+	// If in inspector mode, delegate to inspector
+	if t.inspectorMode && t.inspector != nil {
+		return t.inspector.View(width, height)
 	}
 
 	var content string
@@ -206,13 +238,13 @@ func (t *WorkflowsTab) renderEmpty() string {
 
 func (t *WorkflowsTab) renderWorkflowsList() string {
 	workflowsPath := config.GetWorkflowsPath()
-	
+
 	// Get filtering information
 	isFiltering := t.list.FilterState() == list.Filtering
 	isFiltered := t.list.IsFiltered()
 	totalItems := len(t.list.Items())
 	filteredItems := len(t.list.VisibleItems())
-	
+
 	// Build header with filtering info
 	var header string
 	if isFiltering || isFiltered {
@@ -229,9 +261,9 @@ func (t *WorkflowsTab) renderWorkflowsList() string {
 		header = cli.Title("Workflows") + "\n" +
 			cli.Muted(fmt.Sprintf("Found %d workflow(s) in: %s", totalItems, workflowsPath)) + "\n"
 	}
-	
+
 	listView := t.list.View()
-	
+
 	// Update help text based on filter state
 	var helpText string
 	if isFiltering {
@@ -241,7 +273,7 @@ func (t *WorkflowsTab) renderWorkflowsList() string {
 	} else {
 		helpText = "\n" + cli.Muted("↑/↓: Navigate | Enter: Select | /: Filter | r: Refresh | Tab: Switch tabs | Q: Quit")
 	}
-	
+
 	return header + "\n" + listView + helpText
 }
 
@@ -252,7 +284,7 @@ type workflowDelegate struct {
 
 func newWorkflowDelegate() list.ItemDelegate {
 	d := list.NewDefaultDelegate()
-	
+
 	// Style for selected items
 	d.Styles.SelectedTitle = lipgloss.NewStyle().
 		Foreground(cli.ColorPrimary).
@@ -261,7 +293,7 @@ func newWorkflowDelegate() list.ItemDelegate {
 	d.Styles.SelectedDesc = lipgloss.NewStyle().
 		Foreground(cli.ColorMuted).
 		PaddingLeft(2)
-	
+
 	// Style for unselected items
 	d.Styles.NormalTitle = lipgloss.NewStyle().
 		Foreground(lipgloss.Color("252")).
@@ -269,7 +301,7 @@ func newWorkflowDelegate() list.ItemDelegate {
 	d.Styles.NormalDesc = lipgloss.NewStyle().
 		Foreground(cli.ColorMuted).
 		PaddingLeft(2)
-	
+
 	return &workflowDelegate{DefaultDelegate: d}
 }
 
@@ -290,10 +322,10 @@ func (d *workflowDelegate) Render(w io.Writer, m list.Model, index int, item lis
 		d.DefaultDelegate.Render(w, m, index, item)
 		return
 	}
-	
+
 	wf := workflowItem.workflow
 	isSelected := index == m.Index()
-	
+
 	var titleStyle, descStyle lipgloss.Style
 	if isSelected {
 		titleStyle = d.Styles.SelectedTitle
@@ -302,28 +334,28 @@ func (d *workflowDelegate) Render(w io.Writer, m list.Model, index int, item lis
 		titleStyle = d.Styles.NormalTitle
 		descStyle = d.Styles.NormalDesc
 	}
-	
+
 	// Get available width from list model
 	width := m.Width()
 	if width <= 0 {
 		width = 80 // fallback
 	}
-	
+
 	// Truncate path if too long
 	path := wf.Path
 	if len(path) > width-4 {
 		path = path[:width-7] + "..."
 	}
-	
+
 	// Truncate full path if too long
 	fullPath := wf.FullPath
 	if len(fullPath) > width-6 {
 		fullPath = "..." + fullPath[len(fullPath)-(width-9):]
 	}
-	
+
 	title := titleStyle.Width(width - 2).Render(path)
 	desc := descStyle.Width(width - 2).Render("└─ " + fullPath)
-	
+
 	rendered := lipgloss.JoinVertical(lipgloss.Left, title, desc)
 	fmt.Fprint(w, rendered)
 }
