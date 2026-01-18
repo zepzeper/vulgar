@@ -2,5 +2,10 @@
     "diagnostics.globals": [
         "engine",
         "log"
+    ],
+    "diagnostics.disable": [
+        "missing-fields",
+        "lowercase-global",
+        "redefined-local"
     ]
 }
